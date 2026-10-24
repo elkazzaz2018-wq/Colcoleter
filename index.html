@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الآلة الحاسبة الهندسية للمشروعات - مكتب القزاز للبرمجيات</title>
+    
+    <!-- Bootstrap 5 RTL -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Math.js for scientific computations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0b1120;
+            --card-bg: #1e293b;
+            --display-bg: #090d16;
+            --accent-blue: #38bdf8;
+            --btn-num: #334155;
+            --btn-num-hover: #475569;
+            --btn-op: #f59e0b;
+            --btn-op-hover: #d97706;
+            --btn-sci: #475569;
+            --btn-sci-hover: #64748b;
+            --btn-danger: #ef4444;
+            --btn-equals: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            background: radial-gradient(circle at top, #1e293b 0%, #0f172a 60%, #020617 100%);
+            min-height: 100vh;
+            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            margin: 0;
+        }
+
+        .main-card {
+            background-color: var(--card-bg);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 580px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .card-header-custom {
+            background-color: #0f172a;
+            padding: 18px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .display-area {
+            background-color: var(--display-bg);
+            padding: 20px;
+            text-align: left;
+            direction: ltr;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+
+        .angle-mode-badge {
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            font-size: 0.75rem;
+            background: #334155;
+            color: var(--accent-blue);
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .history-expression {
+            color: var(--text-muted);
+            font-size: 1rem;
+            min-height: 24px;
+            word-break: break-all;
+        }
+
+        .main-expression {
+            color: #ffffff;
+            font-size: 2.2rem;
+            font-weight: bold;
+            word-break: break-all;
+            line-height: 1.2;
+        }
+
+        .nav-tabs-custom {
+            display: flex;
+            background: #0f172a;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            overflow-x: auto;
+        }
+
+        .nav-tabs-custom button {
+            flex: 1;
+            white-space: nowrap;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 12px 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .nav-tabs-custom button.active {
+            color: var(--accent-blue);
+            border-bottom: 3px solid var(--accent-blue);
+            background: rgba(56, 189, 248, 0.05);
+        }
+
+        .grid-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            padding: 15px;
+        }
+
+        .grid-buttons.scientific {
+            grid-template-columns: repeat(5, 1fr);
+        }
+
+        .calc-btn {
+            background-color: var(--btn-num);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 0;
+            font-size: 1.15rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+
+        .calc-btn:active { transform: scale(0.95); }
+        .calc-btn:hover { background-color: var(--btn-num-hover); }
+
+        .btn-op { background-color: var(--btn-op); }
+        .btn-op:hover { background-color: var(--btn-op-hover); }
+
+        .btn-sci { background-color: var(--btn-sci); font-size: 0.95rem; }
+        .btn-sci:hover { background-color: var(--btn-sci-hover); }
+
+        .btn-clear { background-color: var(--btn-danger); }
+        .btn-clear:hover { background-color: #dc2626; }
+
+        .btn-equals { background-color: var(--btn-equals); grid-column: span 2; }
+        .btn-equals:hover { background-color: #1d4ed8; }
+
+        .btn-mem { background-color: #0f172a; color: var(--accent-blue); font-size: 0.85rem; }
+
+        .section-pane { padding: 20px; display: none; max-height: 420px; overflow-y: auto; }
+
+        .info-card {
+            background: #0f172a;
+            border-radius: 16px;
+            padding: 15px;
+            margin-top: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .result-number {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: var(--accent-blue);
+        }
+
+        .metric-box {
+            text-align: center;
+            padding: 10px;
+            background: #1e293b;
+            border-radius: 12px;
+        }
+
+        .history-section {
+            padding: 15px;
+            max-height: 320px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .history-item {
+            background: #0f172a;
+            border-radius: 10px;
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .history-item:hover { background: #1e293b; }
+
+        .sub-nav {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 15px;
+            background: #0f172a;
+            padding: 4px;
+            border-radius: 10px;
+            overflow-x: auto;
+        }
+
+        .sub-nav button {
+            flex: 1;
+            white-space: nowrap;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 6px 8px;
+            font-size: 0.75rem;
+            border-radius: 8px;
+        }
+
+        .sub-nav button.active {
+            background: var(--accent-blue);
+            color: #0f172a;
+            font-weight: bold;
+        }
+
+        .footer-brand {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-card">
+        <!-- الهيدر -->
+        <div class="card-header-custom">
+            <h1 class="brand-title">
+                <i class="fa-solid fa-helmet-safety"></i>
+                مكتب القزاز للبرمجيات
+            </h1>
+            <span class="badge bg-primary rounded-pill">v4.0 المهندس</span>
+        </div>
+
+        <!-- شاشة العرض الرئيسي -->
+        <div id="displayContainer" class="display-area">
+            <span id="angleBadge" class="angle-mode-badge" onclick="toggleAngleMode()">DEG</span>
+            <div id="historyExpr" class="history-expression"></div>
+            <div id="mainExpr" class="main-expression">0</div>
+        </div>
+
+        <!-- شريط التبويب التنقلي -->
+        <div class="nav-tabs-custom">
+            <button id="tabBasic" class="active" onclick="switchTab('basic')">أساسي</button>
+            <button id="tabSci" onclick="switchTab('sci')">علمي</button>
+            <button id="tabPipes" onclick="switchTab('pipes')"><i class="fa-solid fa-screwdriver-wrench me-1"></i>المشروعات والمواسير</button>
+            <button id="tabAge" onclick="switchTab('age')"><i class="fa-solid fa-cake-candles me-1"></i>السن</button>
+            <button id="tabHistory" onclick="switchTab('history')"><i class="fa-solid fa-clock-rotate-left me-1"></i>السجل</button>
+        </div>
+
+        <!-- 1. لوحة الآلة الأساسية والعلمية -->
+        <div id="calcPad">
+            <div class="d-flex gap-1 p-2 bg-dark justify-content-between">
+                <button class="calc-btn btn-mem flex-fill py-1" onclick="handleMemory('MC')">MC</button>
+                <button class="calc-btn btn-mem flex-fill py-1" onclick="handleMemory('MR')">MR</button>
+                <button class="calc-btn btn-mem flex-fill py-1" onclick="handleMemory('M+')">M+</button>
+                <button class="calc-btn btn-mem flex-fill py-1" onclick="handleMemory('M-')">M-</button>
+            </div>
+            <div id="gridButtons" class="grid-buttons"></div>
+        </div>
+
+        <!-- 2. قسم المشروعات الهندسية والمواسير -->
+        <div id="pipesSection" class="section-pane">
+            <div class="sub-nav">
+                <button id="subElbow" class="active" onclick="switchPipeSub('elbow')">نطرة الكوع</button>
+                <button id="subBranch" onclick="switchPipeSub('branch')">تفاصيل الولد</button>
+                <button id="subOffset" onclick="switchPipeSub('offset')">الترحيل المائل</button>
+                <button id="subFlange" onclick="switchPipeSub('flange')">الفلنجات والمسامير</button>
+                <button id="subWeight" onclick="switchPipeSub('weight')">الأوزان والسعة</button>
+            </div>
+
+            <!-- أ. نطرة الكوع -->
+            <div id="pipeElbowPane">
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="form-label text-light small">نوع/زاوية الكوع:</label>
+                        <select id="elbowType" class="form-select bg-dark text-light border-secondary" onchange="toggleCustomAngle()">
+                            <option value="90-LR">كوع 90° نص قطر طويل (LR)</option>
+                            <option value="90-SR">كوع 90° نص قطر قصير (SR)</option>
+                            <option value="45">كوع 45°</option>
+                            <option value="custom">زاوية مخصصة (°)</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label text-light small">القطر الاسمي NPS (بوصة):</label>
+                        <input type="number" id="elbowNPS" class="form-control bg-dark text-light border-secondary" placeholder="مثال: 4">
+                    </div>
+                    <div class="col-12" id="customAngleDiv" style="display: none;">
+                        <label class="form-label text-light small">الزاوية المخصصة (°):</label>
+                        <input type="number" id="elbowCustomAngle" class="form-control bg-dark text-light border-secondary" placeholder="مثال: 60">
+                    </div>
+                </div>
+                <button class="btn btn-primary w-100 py-2 mt-2 font-weight-bold" onclick="calculateElbowTakeoff()">
+                    <i class="fa-solid fa-calculator me-1"></i> احسب نطرة الكوع (Take-off)
+                </button>
+                <div id="elbowResult" style="display: none;">
+                    <div class="info-card text-center">
+                        <div class="text-muted small">مسافة نطرة الكوع (Center-to-Face)</div>
+                        <div class="result-number my-1" id="elbowTakeoffMM">0 مم</div>
+                        <div class="text-muted small" id="elbowTakeoffInch">0 بوصة</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ب. تفاصيل الولد (Branch Connection) -->
+            <div id="pipeBranchPane" style="display: none;">
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="form-label text-light small">القطر الخارجي للرئيسية (مم):</label>
+                        <input type="number" id="headerOD" class="form-control bg-dark text-light border-secondary" placeholder="مثال: 114.3">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label text-light small">القطر الخارجي للولد (مم):</label>
+                        <input type="number" id="branchOD" class="form-control bg-dark text-light border-secondary" placeholder="مثال: 60.3">
+                    </div>
+                </div>
+                <button class="btn btn-primary w-100 py-2 mt-2 font-weight-bold" onclick="calculateBranchDetails()">
+                    <i class="fa-solid fa-calculator me-1"></i> حساب عمق التقطيع ومحيط الولد
+                </button>
+                <div id="branchResult" style="display: none;">
+                    <div class="info-card text-center">
+                        <div class="text-muted small">عمق التقطيع عند الجدران (Crotch Cut Depth)</div>
+                        <div class="result-number my-1" id="branchCutDepth">0 مم</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small">محيط قص الولد:</span>
+                            <span id="branchCircumference" class="fw-bold text-info">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">قطر فتحة الرئيسية:</span>
+                            <span id="headerHoleSize" class="fw-bold text-warning">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ج. الترحيل المائل (Rolling Offset) -->
+            <div id="pipeOffsetPane" style="display: none;">
+                <div class="row g-2 mb-2">
+                    <div class="col-4">
+                        <label class="form-label text-light small">الارتفاع (Rise):</label>
+                        <input type="number" id="offsetRise" class="form-control bg-dark text-light border-secondary" placeholder="مم">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label text-light small">الازاحة (Run):</label>
+                        <input type="number" id="offsetRun" class="form-control bg-dark text-light border-secondary" placeholder="مم">
+                    </div>
+                    <div class="col-4">
+                        <label class="form-label text-light small">العمق (Roll):</label>
+                        <input type="number" id="offsetRoll" class="form-control bg-dark text-light border-secondary" placeholder="مم">
+                    </div>
+                </div>
+                <button class="btn btn-primary w-100 py-2 mt-2 font-weight-bold" onclick="calculateRollingOffset()">
+                    <i class="fa-solid fa-calculator me-1"></i> حساب طول الوصلة المائلة والزاوية
+                </button>
+                <div id="offsetResult" style="display: none;">
+                    <div class="info-card text-center">
+                        <div class="text-muted small">طول الماسورة المائلة الحقيقي (Travel Length)</div>
+                        <div class="result-number my-1" id="travelLength">0 مم</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">زاوية الميل المحسوبة:</span>
+                            <span id="offsetAngle" class="fw-bold text-info">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- د. الفلنجات ومقاسات المسامير (Flanges & Bolt Patterns) -->
+            <div id="pipeFlangePane" style="display: none;">
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="form-label text-light small">القطر الاسمي NPS (بوصة):</label>
+                        <input type="number" id="flangeNPS" class="form-control bg-dark text-light border-secondary" placeholder="مثال: 4">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label text-light small">تصنيف الضغط (Rating):</label>
+                        <select id="flangeRating" class="form-select bg-dark text-light border-secondary">
+                            <option value="150">Class 150</option>
+                            <option value="300">Class 300</option>
+                            <option value="600">Class 600</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-primary w-100 py-2 mt-2 font-weight-bold" onclick="calculateFlangeDetails()">
+                    <i class="fa-solid fa-calculator me-1"></i> حساب بيانات الفلنجة والمسامير
+                </button>
+                <div id="flangeResult" style="display: none;">
+                    <div class="info-card">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small">قطر دائرة المسامير (PCD):</span>
+                            <span id="flangePCD" class="fw-bold text-info">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small">عدد المسامير (Number of Bolts):</span>
+                            <span id="flangeBoltsCount" class="fw-bold text-warning">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">قطر المسمار القياسي (Bolt Size):</span>
+                            <span id="flangeBoltSize" class="fw-bold text-success">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- هـ. الأوزان والسعة -->
+            <div id="pipeWeightPane" style="display: none;">
+                <div class="row g-2 mb-2">
+                    <div class="col-12 mb-2">
+                        <label class="form-label text-light small">خامة الماسورة:</label>
+                        <select id="pipeMaterial" class="form-select bg-dark text-light border-secondary">
+                            <option value="7850">صلب / حديد (Steel) - 7850 kg/m³</option>
+                            <option value="1400">بلاستيك (PVC) - 1400 kg/m³</option>
+                            <option value="8960">نحاس (Copper) - 8960 kg/m³</option>
+                            <option value="2700">ألومنيوم (Aluminum) - 2700 kg/m³</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label text-light small">القطر الخارجي OD (مم):</label>
+                        <input type="number" id="pipeOD" class="form-control bg-dark text-light border-secondary" placeholder="مثال: 114.3">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label text-light small">سمك الجدار Wall (مم):</label>
+                        <input type="number" id="pipeWall" class="form-control bg-dark text-light border-secondary" placeholder="مثال: 6.02">
+                    </div>
+                    <div class="col-12 mt-2">
+                        <label class="form-label text-light small">طول الماسورة (متر):</label>
+                        <input type="number" id="pipeLength" class="form-control bg-dark text-light border-secondary" value="6">
+                    </div>
+                </div>
+                <button class="btn btn-primary w-100 py-2 mt-2 font-weight-bold" onclick="calculatePipeDetails()">
+                    <i class="fa-solid fa-calculator me-1"></i> حساب الأوزان والسعة
+                </button>
+                <div id="pipeResult" style="display: none;">
+                    <div class="info-card text-center">
+                        <div class="text-muted small">الوزن الإجمالي للماسورة</div>
+                        <div class="result-number my-1" id="pipeTotalWeight">0 كجم</div>
+                        <div class="text-muted small" id="pipeMeterWeight">0 كجم / متر</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small">القطر الداخلي (ID):</span>
+                            <span id="pipeID" class="fw-bold text-info">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small">السعة الداخلية (لتر):</span>
+                            <span id="pipeVolume" class="fw-bold text-warning">-</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">المساحة السطحية الخارجية:</span>
+                            <span id="pipeSurfaceArea" class="fw-bold text-success">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. قسم حساب السن -->
+        <div id="ageSection" class="section-pane">
+            <label class="form-label text-light mb-2"><i class="fa-solid fa-calendar-day text-primary me-1"></i> اختر تاريخ الميلاد:</label>
+            <input type="date" id="birthdateInput" class="form-control form-control-lg bg-dark text-light border-secondary mb-3">
+            <button class="btn btn-primary w-100 py-2 font-weight-bold" onclick="calculateAge()">
+                <i class="fa-solid fa-calculator me-1"></i> احسب العمر الآن
+            </button>
+            <div id="ageResult" style="display: none;">
+                <div class="info-card text-center">
+                    <div class="text-muted small">العمر الحالي بالتفصيل</div>
+                    <div class="row g-2 mt-2">
+                        <div class="col-4">
+                            <div class="metric-box">
+                                <div id="ageYears" class="result-number">0</div>
+                                <div class="small text-muted">سنة</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="metric-box">
+                                <div id="ageMonths" class="result-number">0</div>
+                                <div class="small text-muted">شهر</div>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="metric-box">
+                                <div id="ageDays" class="result-number">0</div>
+                                <div class="small text-muted">يوم</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted small">يوم الميلاد:</span>
+                        <span id="birthDayName" class="fw-bold text-info">-</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted small">المتبقي لعيد الميلاد:</span>
+                        <span id="nextBirthdayCountdown" class="fw-bold text-warning">-</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">إجمالي الساعات:</span>
+                        <span id="totalHoursLived" class="fw-bold text-success">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. قسم السجل -->
+        <div id="historySection" class="history-section">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted small">العمليات السابقة</span>
+                <button class="btn btn-sm btn-outline-danger" onclick="clearHistory()">مسح السجل</button>
+            </div>
+            <div id="historyList">
+                <div class="text-center text-muted py-4">لا يوجد سجل عمليات حتى الآن</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-brand">
+        تطوير وإشراف: <b>مكتب القزاز للبرمجيات</b> © 2026
+    </div>
+
+    <script>
+        let currentInput = '0';
+        let lastExpression = '';
+        let memoryValue = 0;
+        let isDegree = true;
+        let activeTab = 'basic';
+        let calcHistory = [];
+
+        const mainExpr = document.getElementById('mainExpr');
+        const historyExpr = document.getElementById('historyExpr');
+        const angleBadge = document.getElementById('angleBadge');
+        const gridButtons = document.getElementById('gridButtons');
+
+        const basicLayout = [
+            { text: 'C', class: 'btn-clear', action: 'clear' },
+            { text: '⌫', class: 'btn-sci', action: 'backspace' },
+            { text: '%', class: 'btn-op', action: 'op', val: '%' },
+            { text: '÷', class: 'btn-op', action: 'op', val: '/' },
+            { text: '7', action: 'num', val: '7' },
+            { text: '8', action: 'num', val: '8' },
+            { text: '9', action: 'num', val: '9' },
+            { text: '×', class: 'btn-op', action: 'op', val: '*' },
+            { text: '4', action: 'num', val: '4' },
+            { text: '5', action: 'num', val: '5' },
+            { text: '6', action: 'num', val: '6' },
+            { text: '-', class: 'btn-op', action: 'op', val: '-' },
+            { text: '1', action: 'num', val: '1' },
+            { text: '2', action: 'num', val: '2' },
+            { text: '3', action: 'num', val: '3' },
+            { text: '+', class: 'btn-op', action: 'op', val: '+' },
+            { text: '0', action: 'num', val: '0' },
+            { text: '.', action: 'num', val: '.' },
+            { text: '=', class: 'btn-equals', action: 'eval' }
+        ];
+
+        const sciLayout = [
+            { text: 'sin', class: 'btn-sci', action: 'func', val: 'sin(' },
+            { text: 'cos', class: 'btn-sci', action: 'func', val: 'cos(' },
+            { text: 'tan', class: 'btn-sci', action: 'func', val: 'tan(' },
+            { text: 'C', class: 'btn-clear', action: 'clear' },
+            { text: '⌫', class: 'btn-sci', action: 'backspace' },
+            { text: 'x²', class: 'btn-sci', action: 'func', val: '^2' },
+            { text: 'xⁿ', class: 'btn-sci', action: 'func', val: '^' },
+            { text: '√', class: 'btn-sci', action: 'func', val: 'sqrt(' },
+            { text: '(', class: 'btn-sci', action: 'num', val: '(' },
+            { text: ')', class: 'btn-sci', action: 'num', val: ')' },
+            { text: 'ln', class: 'btn-sci', action: 'func', val: 'log(' },
+            { text: 'log', class: 'btn-sci', action: 'func', val: 'log10(' },
+            { text: 'π', class: 'btn-sci', action: 'num', val: 'pi' },
+            { text: 'e', class: 'btn-sci', action: 'num', val: 'e' },
+            { text: '÷', class: 'btn-op', action: 'op', val: '/' },
+            { text: '7', action: 'num', val: '7' },
+            { text: '8', action: 'num', val: '8' },
+            { text: '9', action: 'num', val: '9' },
+            { text: '%', class: 'btn-op', action: 'op', val: '%' },
+            { text: '×', class: 'btn-op', action: 'op', val: '*' },
+            { text: '4', action: 'num', val: '4' },
+            { text: '5', action: 'num', val: '5' },
+            { text: '6', action: 'num', val: '6' },
+            { text: 'n!', class: 'btn-sci', action: 'func', val: '!' },
+            { text: '-', class: 'btn-op', action: 'op', val: '-' },
+            { text: '1', action: 'num', val: '1' },
+            { text: '2', action: 'num', val: '2' },
+            { text: '3', action: 'num', val: '3' },
+            { text: '+', class: 'btn-op', action: 'op', val: '+' },
+            { text: '=', class: 'btn-equals', action: 'eval' },
+            { text: '0', action: 'num', val: '0' },
+            { text: '.', action: 'num', val: '.' }
+        ];
+
+        function renderButtons(layout) {
+            gridButtons.innerHTML = '';
+            if(activeTab === 'sci') gridButtons.classList.add('scientific');
+            else gridButtons.classList.remove('scientific');
+
+            layout.forEach(btn => {
+                const el = document.createElement('button');
+                el.className = `calc-btn ${btn.class || ''}`;
+                el.innerText = btn.text;
+                el.onclick = () => {
+                    if (btn.action === 'num' || btn.action === 'op' || btn.action === 'func') appendValue(btn.val);
+                    else if (btn.action === 'clear') clearDisplay();
+                    else if (btn.action === 'backspace') handleBackspace();
+                    else if (btn.action === 'eval') evaluateExpression();
+                };
+                gridButtons.appendChild(el);
+            });
+        }
+
+        function updateDisplay() {
+            mainExpr.innerText = currentInput;
+            historyExpr.innerText = lastExpression;
+        }
+
+        function appendValue(val) {
+            if (currentInput === '0' && !isNaN(val)) currentInput = val;
+            else currentInput += val;
+            updateDisplay();
+        }
+
+        function clearDisplay() {
+            currentInput = '0';
+            lastExpression = '';
+            updateDisplay();
+        }
+
+        function handleBackspace() {
+            currentInput = (currentInput.length === 1) ? '0' : currentInput.slice(0, -1);
+            updateDisplay();
+        }
+
+        function toggleAngleMode() {
+            isDegree = !isDegree;
+            angleBadge.innerText = isDegree ? 'DEG' : 'RAD';
+        }
+
+        function evaluateExpression() {
+            try {
+                let exprToEval = currentInput.replace(/×/g, '*').replace(/÷/g, '/');
+                if (isDegree) {
+                    exprToEval = exprToEval.replace(/sin\(([^)]+)\)/g, 'sin(($1) * deg)')
+                                           .replace(/cos\(([^)]+)\)/g, 'cos(($1) * deg)')
+                                           .replace(/tan\(([^)]+)\)/g, 'tan(($1) * deg)');
+                }
+                let result = math.evaluate(exprToEval);
+                if (typeof result === 'number') result = parseFloat(result.toFixed(8)).toString();
+
+                lastExpression = currentInput + ' =';
+                calcHistory.unshift({ expr: currentInput, res: result });
+                updateHistoryUI();
+
+                currentInput = result;
+                updateDisplay();
+            } catch (err) {
+                mainExpr.innerText = 'خطأ رياضي';
+                setTimeout(updateDisplay, 1500);
+            }
+        }
+
+        function handleMemory(op) {
+            let val = parseFloat(currentInput) || 0;
+            if (op === 'MC') memoryValue = 0;
+            else if (op === 'MR') currentInput = memoryValue.toString();
+            else if (op === 'M+') memoryValue += val;
+            else if (op === 'M-') memoryValue -= val;
+            updateDisplay();
+        }
+
+        function switchTab(tab) {
+            activeTab = tab;
+            document.querySelectorAll('.nav-tabs-custom button').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById('displayContainer').style.display = (tab === 'basic' || tab === 'sci') ? 'flex' : 'none';
+            document.getElementById('calcPad').style.display = (tab === 'basic' || tab === 'sci') ? 'block' : 'none';
+            document.getElementById('pipesSection').style.display = (tab === 'pipes') ? 'block' : 'none';
+            document.getElementById('ageSection').style.display = (tab === 'age') ? 'block' : 'none';
+            document.getElementById('historySection').style.display = (tab === 'history') ? 'block' : 'none';
+
+            if (tab === 'basic') { document.getElementById('tabBasic').classList.add('active'); renderButtons(basicLayout); }
+            else if (tab === 'sci') { document.getElementById('tabSci').classList.add('active'); renderButtons(sciLayout); }
+            else if (tab === 'pipes') { document.getElementById('tabPipes').classList.add('active'); }
+            else if (tab === 'age') { document.getElementById('tabAge').classList.add('active'); }
+            else if (tab === 'history') { document.getElementById('tabHistory').classList.add('active'); }
+        }
+
+        function switchPipeSub(sub) {
+            document.querySelectorAll('.sub-nav button').forEach(b => b.classList.remove('active'));
+            document.getElementById('pipeElbowPane').style.display = (sub === 'elbow') ? 'block' : 'none';
+            document.getElementById('pipeBranchPane').style.display = (sub === 'branch') ? 'block' : 'none';
+            document.getElementById('pipeOffsetPane').style.display = (sub === 'offset') ? 'block' : 'none';
+            document.getElementById('pipeFlangePane').style.display = (sub === 'flange') ? 'block' : 'none';
+            document.getElementById('pipeWeightPane').style.display = (sub === 'weight') ? 'block' : 'none';
+
+            if (sub === 'elbow') document.getElementById('subElbow').classList.add('active');
+            else if (sub === 'branch') document.getElementById('subBranch').classList.add('active');
+            else if (sub === 'offset') document.getElementById('subOffset').classList.add('active');
+            else if (sub === 'flange') document.getElementById('subFlange').classList.add('active');
+            else if (sub === 'weight') document.getElementById('subWeight').classList.add('active');
+        }
+
+        function toggleCustomAngle() {
+            const val = document.getElementById('elbowType').value;
+            document.getElementById('customAngleDiv').style.display = (val === 'custom') ? 'block' : 'none';
+        }
+
+        // 1. نطرة الكوع
+        function calculateElbowTakeoff() {
+            const nps = parseFloat(document.getElementById('elbowNPS').value);
+            const type = document.getElementById('elbowType').value;
+            if (!nps || nps <= 0) return alert('برجاء إدخال القطر الاسمي NPS');
+
+            let takeoffMM = 0;
+            if (type === '90-LR') takeoffMM = nps * 38.1;
+            else if (type === '90-SR') takeoffMM = nps * 25.4;
+            else if (type === '45') takeoffMM = nps * 15.875;
+            else if (type === 'custom') {
+                const angle = parseFloat(document.getElementById('elbowCustomAngle').value);
+                if (!angle) return alert('أدخل الزاوية المخصصة');
+                takeoffMM = (nps * 38.1) * Math.tan((angle / 2) * (Math.PI / 180));
+            }
+            document.getElementById('elbowTakeoffMM').innerText = `${takeoffMM.toFixed(1)} مم`;
+            document.getElementById('elbowTakeoffInch').innerText = `(${(takeoffMM / 25.4).toFixed(2)} بوصة)`;
+            document.getElementById('elbowResult').style.display = 'block';
+        }
+
+        // 2. تفاصيل الولد
+        function calculateBranchDetails() {
+            const hOD = parseFloat(document.getElementById('headerOD').value);
+            const bOD = parseFloat(document.getElementById('branchOD').value);
+            if (!hOD || !bOD || bOD > hOD) return alert('تأكد من صحة الأقطار المدخلة');
+
+            const rH = hOD / 2, rB = bOD / 2;
+            const cutDepth = rH - Math.sqrt(Math.pow(rH, 2) - Math.pow(rB, 2));
+            document.getElementById('branchCutDepth').innerText = `${cutDepth.toFixed(1)} مم`;
+            document.getElementById('branchCircumference').innerText = `${(Math.PI * bOD).toFixed(1)} مم`;
+            document.getElementById('headerHoleSize').innerText = `${bOD.toFixed(1)} مم`;
+            document.getElementById('branchResult').style.display = 'block';
+        }
+
+        // 3. الترحيل المائل (Rolling Offset)
+        function calculateRollingOffset() {
+            const rise = parseFloat(document.getElementById('offsetRise').value) || 0;
+            const run = parseFloat(document.getElementById('offsetRun').value) || 0;
+            const roll = parseFloat(document.getElementById('offsetRoll').value) || 0;
+
+            const travel = Math.sqrt(Math.pow(rise, 2) + Math.pow(run, 2) + Math.pow(roll, 2));
+            const angle = Math.acos(rise / travel) * (180 / Math.PI);
+
+            document.getElementById('travelLength').innerText = `${travel.toFixed(2)} مم`;
+            document.getElementById('offsetAngle').innerText = `${angle.toFixed(1)}°`;
+            document.getElementById('offsetResult').style.display = 'block';
+        }
+
+        // 4. الفلنجات والمسامير (Flanges)
+        function calculateFlangeDetails() {
+            const nps = parseFloat(document.getElementById('flangeNPS').value);
+            const rating = document.getElementById('flangeRating').value;
+            if (!nps) return alert('أدخل القطر الاسمي NPS');
+
+            // حسابات تقريبية هندسية معيارية ASME B16.5
+            let pcd = nps * 25.4 + (rating === '150' ? 60 : 75);
+            let boltsCount = nps <= 3 ? 4 : (nps <= 8 ? 8 : (nps <= 12 ? 12 : 16));
+            if(rating === '300' && nps >= 4) boltsCount += 4;
+
+            document.getElementById('flangePCD').innerText = `${pcd.toFixed(1)} مم`;
+            document.getElementById('flangeBoltsCount',).innerText = `${boltsCount} مسامير`;
+            document.getElementById('flangeBoltSize').innerText = nps <= 3 ? '5/8 بوصة' : (nps <= 8 ? '3/4 بوصة' : '7/8 بوصة');
+            document.getElementById('flangeResult').style.display = 'block';
+        }
+
+        // 5. الأوزان والسعة
+        function calculatePipeDetails() {
+            const od = parseFloat(document.getElementById('pipeOD').value);
+            const wall = parseFloat(document.getElementById('pipeWall').value);
+            const length = parseFloat(document.getElementById('pipeLength').value) || 1;
+            const density = parseFloat(document.getElementById('pipeMaterial').value);
+
+            if (!od || !wall || wall * 2 >= od) return alert('بيانات الماسورة غير صالحة');
+            const id = od - (2 * wall);
+            const rO = (od / 2) / 1000, rI = (id / 2) / 1000;
+            const metalArea = (Math.PI * Math.pow(rO, 2)) - (Math.PI * Math.pow(rI, 2));
+
+            const totalWeight = metalArea * density * length;
+            const innerVolume = Math.PI * Math.pow(rI, 2) * length * 1000;
+
+            document.getElementById('pipeTotalWeight').innerText = `${totalWeight.toFixed(2)} كجم`;
+            document.getElementById('pipeMeterWeight').innerText = `(${(totalWeight/length).toFixed(2)} كجم/م)`;
+            document.getElementById('pipeID').innerText = `${id.toFixed(2)} مم`;
+            document.getElementById('pipeVolume').innerText = `${innerVolume.toFixed(2)} لتر`;
+            document.getElementById('pipeSurfaceArea').innerText = `${(2 * Math.PI * rO * length).toFixed(2)} م²`;
+            document.getElementById('pipeResult').style.display = 'block';
+        }
+
+        // 6. حساب السن
+        function calculateAge() {
+            const birthVal = document.getElementById('birthdateInput').value;
+            if (!birthVal) return alert('اختر تاريخ الميلاد');
+            const birthDate = new Date(birthVal), now = new Date();
+            let years = now.getFullYear() - birthDate.getFullYear();
+            let months = now.getMonth() - birthDate.getMonth();
+            let days = now.getDate() - birthDate.getDate();
+            if (days < 0) { months--; days += new Date(now.getFullYear(), now.getMonth(), 0).getDate(); }
+            if (months < 0) { years--; months += 12; }
+
+            document.getElementById('ageYears').innerText = years;
+            document.getElementById('ageMonths').innerText = months;
+            document.getElementById('ageDays').innerText = days;
+            document.getElementById('birthDayName').innerText = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'][birthDate.getDay()];
+            
+            let nextB = new Date(now.getFullYear(), birthDate.getMonth(), birthDate.getDate());
+            if (now > nextB) nextB.setFullYear(now.getFullYear() + 1);
+            document.getElementById('nextBirthdayCountdown').innerText = `${Math.ceil(Math.abs(nextB - now)/(1000*60*60*24))} يوم`;
+            document.getElementById('totalHoursLived').innerText = Math.floor((now - birthDate)/(1000*60*60)).toLocaleString('ar-EG');
+            document.getElementById('ageResult').style.display = 'block';
+        }
+
+        function updateHistoryUI() {
+            const list = document.getElementById('historyList');
+            if (calcHistory.length === 0) { list.innerHTML = '<div class="text-center text-muted py-4">لا يوجد سجل</div>'; return; }
+            list.innerHTML = '';
+            calcHistory.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'history-item';
+                el.innerHTML = `<div class="small text-muted">${item.expr}</div><div class="fw-bold text-primary">${item.res}</div>`;
+                el.onclick = () => { currentInput = item.res; switchTab('basic'); updateDisplay(); };
+                list.appendChild(el);
+            });
+        }
+
+        function clearHistory() { calcHistory = []; updateHistoryUI(); }
+
+        renderButtons(basicLayout);
+    </script>
+</body>
+</html>
