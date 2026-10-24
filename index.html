@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>الآلة الحاسبة الهندسية للمشروعات - مكتب القزاز للبرمجيات</title>
+    <title>الآلة الحاسبة الذكية للمشروعات والكاميرا - مكتب القزاز للبرمجيات</title>
     
     <!-- Bootstrap 5 RTL -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
@@ -11,6 +11,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <!-- Math.js for scientific computations -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+    <!-- Tesseract.js for OCR Camera Processing -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
 
     <style>
         :root {
@@ -251,6 +253,16 @@
             font-weight: bold;
         }
 
+        /* الكاميرا */
+        .video-viewport {
+            width: 100%;
+            height: 200px;
+            background: #000;
+            border-radius: 12px;
+            object-fit: cover;
+            display: none;
+        }
+
         .footer-brand {
             margin-top: 15px;
             font-size: 0.85rem;
@@ -265,10 +277,10 @@
         <!-- الهيدر -->
         <div class="card-header-custom">
             <h1 class="brand-title">
-                <i class="fa-solid fa-helmet-safety"></i>
+                <i class="fa-solid fa-camera-retro"></i>
                 مكتب القزاز للبرمجيات
             </h1>
-            <span class="badge bg-primary rounded-pill">v4.0 المهندس</span>
+            <span class="badge bg-primary rounded-pill">v5.0 ذكي</span>
         </div>
 
         <!-- شاشة العرض الرئيسي -->
@@ -282,6 +294,7 @@
         <div class="nav-tabs-custom">
             <button id="tabBasic" class="active" onclick="switchTab('basic')">أساسي</button>
             <button id="tabSci" onclick="switchTab('sci')">علمي</button>
+            <button id="tabCamera" onclick="switchTab('camera')"><i class="fa-solid fa-camera me-1"></i>الكاميرا الذكية</button>
             <button id="tabPipes" onclick="switchTab('pipes')"><i class="fa-solid fa-screwdriver-wrench me-1"></i>المشروعات والمواسير</button>
             <button id="tabAge" onclick="switchTab('age')"><i class="fa-solid fa-cake-candles me-1"></i>السن</button>
             <button id="tabHistory" onclick="switchTab('history')"><i class="fa-solid fa-clock-rotate-left me-1"></i>السجل</button>
@@ -298,7 +311,43 @@
             <div id="gridButtons" class="grid-buttons"></div>
         </div>
 
-        <!-- 2. قسم المشروعات الهندسية والمواسير -->
+        <!-- 2. قسم الماسح الضوئي بالكاميرا (OCR) -->
+        <div id="cameraSection" class="section-pane">
+            <div class="text-center mb-3">
+                <p class="small text-muted mb-2">وجه الكاميرا مباشرة إلى المخطط أو المسألة المكتوبة، أو رفع صورة من الاستوديو لقراءتها وحلها فوراً:</p>
+                
+                <video id="cameraVideo" class="video-viewport mb-2" autoplay playsinline></video>
+                <canvas id="snapshotCanvas" style="display:none;"></canvas>
+
+                <div class="d-flex gap-2 justify-content-center">
+                    <button id="btnStartCam" class="btn btn-outline-info btn-sm" onclick="startCamera()">
+                        <i class="fa-solid fa-video me-1"></i> تشغيل الكاميرا
+                    </button>
+                    <button id="btnCapture" class="btn btn-primary btn-sm" onclick="captureAndProcess()" style="display:none;">
+                        <i class="fa-solid fa-expand me-1"></i> قراءة وحل المسألة
+                    </button>
+                    <button class="btn btn-outline-light btn-sm" onclick="document.getElementById('fileInput').click()">
+                        <i class="fa-solid fa-upload me-1"></i> اختيار صورة
+                    </button>
+                    <input type="file" id="fileInput" accept="image/*" style="display:none;" onchange="processImageFile(event)">
+                </div>
+            </div>
+
+            <div id="ocrStatus" class="text-center text-warning small my-2" style="display:none;">
+                <i class="fa-solid fa-spinner fa-spin me-1"></i> جاري التعرف الذكي على النص والعمليات...
+            </div>
+
+            <div id="ocrResultCard" class="info-card" style="display:none;">
+                <div class="text-muted small">النص المستخرج من الصورة:</div>
+                <div id="ocrExtractedText" class="fw-bold text-info my-1" dir="ltr"></div>
+                <hr class="border-secondary my-2">
+                <button class="btn btn-success btn-sm w-100" onclick="transferOcrToCalculator()">
+                    <i class="fa-solid fa-calculator me-1"></i> نقل المعادلة للآلة الحاسبة وحلها
+                </button>
+            </div>
+        </div>
+
+        <!-- 3. قسم المشروعات الهندسية والمواسير -->
         <div id="pipesSection" class="section-pane">
             <div class="sub-nav">
                 <button id="subElbow" class="active" onclick="switchPipeSub('elbow')">نطرة الكوع</button>
@@ -341,7 +390,7 @@
                 </div>
             </div>
 
-            <!-- ب. تفاصيل الولد (Branch Connection) -->
+            <!-- ب. تفاصيل الولد -->
             <div id="pipeBranchPane" style="display: none;">
                 <div class="row g-2 mb-2">
                     <div class="col-6">
@@ -374,7 +423,7 @@
                 </div>
             </div>
 
-            <!-- ج. الترحيل المائل (Rolling Offset) -->
+            <!-- ج. الترحيل المائل -->
             <div id="pipeOffsetPane" style="display: none;">
                 <div class="row g-2 mb-2">
                     <div class="col-4">
@@ -407,7 +456,7 @@
                 </div>
             </div>
 
-            <!-- د. الفلنجات ومقاسات المسامير (Flanges & Bolt Patterns) -->
+            <!-- د. الفلنجات والمسامير -->
             <div id="pipeFlangePane" style="display: none;">
                 <div class="row g-2 mb-2">
                     <div class="col-6">
@@ -433,11 +482,11 @@
                             <span id="flangePCD" class="fw-bold text-info">-</span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-muted small">عدد المسامير (Number of Bolts):</span>
+                            <span class="text-muted small">عدد المسامير (Bolts Count):</span>
                             <span id="flangeBoltsCount" class="fw-bold text-warning">-</span>
                         </div>
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-muted small">قطر المسمار القياسي (Bolt Size):</span>
+                            <span class="text-muted small">قطر المسمار القياسي:</span>
                             <span id="flangeBoltSize" class="fw-bold text-success">-</span>
                         </div>
                     </div>
@@ -496,7 +545,7 @@
             </div>
         </div>
 
-        <!-- 3. قسم حساب السن -->
+        <!-- 4. قسم حساب السن -->
         <div id="ageSection" class="section-pane">
             <label class="form-label text-light mb-2"><i class="fa-solid fa-calendar-day text-primary me-1"></i> اختر تاريخ الميلاد:</label>
             <input type="date" id="birthdateInput" class="form-control form-control-lg bg-dark text-light border-secondary mb-3">
@@ -544,14 +593,14 @@
             </div>
         </div>
 
-        <!-- 4. قسم السجل -->
+        <!-- 5. قسم السجل -->
         <div id="historySection" class="history-section">
             <div class="d-flex justify-content-between align-items-center mb-2">
                 <span class="text-muted small">العمليات السابقة</span>
                 <button class="btn btn-sm btn-outline-danger" onclick="clearHistory()">مسح السجل</button>
             </div>
             <div id="historyList">
-                <div class="text-center text-muted py-4">لا يوجد سجل عمليات حتى الآن</div>
+                <div class="text-center text-muted py-4">لا يوجد سجل</div>
             </div>
         </div>
     </div>
@@ -567,6 +616,8 @@
         let isDegree = true;
         let activeTab = 'basic';
         let calcHistory = [];
+        let mediaStream = null;
+        let lastDetectedOcrText = '';
 
         const mainExpr = document.getElementById('mainExpr');
         const historyExpr = document.getElementById('historyExpr');
@@ -714,15 +765,17 @@
             
             document.getElementById('displayContainer').style.display = (tab === 'basic' || tab === 'sci') ? 'flex' : 'none';
             document.getElementById('calcPad').style.display = (tab === 'basic' || tab === 'sci') ? 'block' : 'none';
+            document.getElementById('cameraSection').style.display = (tab === 'camera') ? 'block' : 'none';
             document.getElementById('pipesSection').style.display = (tab === 'pipes') ? 'block' : 'none';
             document.getElementById('ageSection').style.display = (tab === 'age') ? 'block' : 'none';
             document.getElementById('historySection').style.display = (tab === 'history') ? 'block' : 'none';
 
-            if (tab === 'basic') { document.getElementById('tabBasic').classList.add('active'); renderButtons(basicLayout); }
-            else if (tab === 'sci') { document.getElementById('tabSci').classList.add('active'); renderButtons(sciLayout); }
-            else if (tab === 'pipes') { document.getElementById('tabPipes').classList.add('active'); }
-            else if (tab === 'age') { document.getElementById('tabAge').classList.add('active'); }
-            else if (tab === 'history') { document.getElementById('tabHistory').classList.add('active'); }
+            if (tab === 'basic') { document.getElementById('tabBasic').classList.add('active'); renderButtons(basicLayout); stopCamera(); }
+            else if (tab === 'sci') { document.getElementById('tabSci').classList.add('active'); renderButtons(sciLayout); stopCamera(); }
+            else if (tab === 'camera') { document.getElementById('tabCamera').classList.add('active'); }
+            else if (tab === 'pipes') { document.getElementById('tabPipes').classList.add('active'); stopCamera(); }
+            else if (tab === 'age') { document.getElementById('tabAge').classList.add('active'); stopCamera(); }
+            else if (tab === 'history') { document.getElementById('tabHistory').classList.add('active'); stopCamera(); }
         }
 
         function switchPipeSub(sub) {
@@ -740,16 +793,91 @@
             else if (sub === 'weight') document.getElementById('subWeight').classList.add('active');
         }
 
+        // --- تشغيل وتقنيات الكاميرا الذكية (OCR Camera) ---
+        async function startCamera() {
+            try {
+                const video = document.getElementById('cameraVideo');
+                mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+                video.srcObject = mediaStream;
+                video.style.display = 'block';
+                document.getElementById('btnStartCam').style.display = 'none';
+                document.getElementById('btnCapture').style.display = 'inline-block';
+            } catch (err) {
+                alert('تعذر الوصول للكاميرا، يمكنك اختيار صورة من جهازك بدلاً من ذلك.');
+            }
+        }
+
+        function stopCamera() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+            const video = document.getElementById('cameraVideo');
+            if (video) video.style.display = 'none';
+            document.getElementById('btnStartCam').style.display = 'inline-block';
+            document.getElementById('btnCapture').style.display = 'none';
+        }
+
+        function captureAndProcess() {
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.getElementById('snapshotCanvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            
+            const imageDataUrl = canvas.toDataURL('image/png');
+            runOcrOnImage(imageDataUrl);
+        }
+
+        function processImageFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => runOcrOnImage(e.target.result);
+            reader.readAsDataURL(file);
+        }
+
+        async function runOcrOnImage(imageSource) {
+            document.getElementById('ocrStatus').style.display = 'block';
+            document.getElementById('ocrResultCard').style.display = 'none';
+
+            try {
+                const worker = await Tesseract.createWorker('eng');
+                const ret = await worker.recognize(imageSource);
+                await worker.terminate();
+
+                let text = ret.data.text.trim();
+                text = text.replace(/x/gi, '*').replace(/÷/g, '/').replace(/=/g, '').replace(/[^0-9+\-*\/().]/g, '');
+
+                lastDetectedOcrText = text;
+                document.getElementById('ocrStatus').style.display = 'none';
+                document.getElementById('ocrExtractedText').innerText = text || 'لم يتم العثور على معادلة سليمة';
+                document.getElementById('ocrResultCard').style.display = 'block';
+            } catch (err) {
+                document.getElementById('ocrStatus').style.display = 'none';
+                alert('حدث خطأ أثناء معالجة الصورة.');
+            }
+        }
+
+        function transferOcrToCalculator() {
+            if (lastDetectedOcrText) {
+                currentInput = lastDetectedOcrText;
+                switchTab('basic');
+                updateDisplay();
+                evaluateExpression();
+            }
+        }
+
+        // --- المودولات الهندسية ---
         function toggleCustomAngle() {
             const val = document.getElementById('elbowType').value;
             document.getElementById('customAngleDiv').style.display = (val === 'custom') ? 'block' : 'none';
         }
 
-        // 1. نطرة الكوع
         function calculateElbowTakeoff() {
             const nps = parseFloat(document.getElementById('elbowNPS').value);
             const type = document.getElementById('elbowType').value;
-            if (!nps || nps <= 0) return alert('برجاء إدخال القطر الاسمي NPS');
+            if (!nps || nps <= 0) return alert('أدخل القطر الاسمي NPS');
 
             let takeoffMM = 0;
             if (type === '90-LR') takeoffMM = nps * 38.1;
@@ -765,7 +893,6 @@
             document.getElementById('elbowResult').style.display = 'block';
         }
 
-        // 2. تفاصيل الولد
         function calculateBranchDetails() {
             const hOD = parseFloat(document.getElementById('headerOD').value);
             const bOD = parseFloat(document.getElementById('branchOD').value);
@@ -779,7 +906,6 @@
             document.getElementById('branchResult').style.display = 'block';
         }
 
-        // 3. الترحيل المائل (Rolling Offset)
         function calculateRollingOffset() {
             const rise = parseFloat(document.getElementById('offsetRise').value) || 0;
             const run = parseFloat(document.getElementById('offsetRun').value) || 0;
@@ -793,24 +919,21 @@
             document.getElementById('offsetResult').style.display = 'block';
         }
 
-        // 4. الفلنجات والمسامير (Flanges)
         function calculateFlangeDetails() {
             const nps = parseFloat(document.getElementById('flangeNPS').value);
             const rating = document.getElementById('flangeRating').value;
             if (!nps) return alert('أدخل القطر الاسمي NPS');
 
-            // حسابات تقريبية هندسية معيارية ASME B16.5
             let pcd = nps * 25.4 + (rating === '150' ? 60 : 75);
             let boltsCount = nps <= 3 ? 4 : (nps <= 8 ? 8 : (nps <= 12 ? 12 : 16));
             if(rating === '300' && nps >= 4) boltsCount += 4;
 
             document.getElementById('flangePCD').innerText = `${pcd.toFixed(1)} مم`;
-            document.getElementById('flangeBoltsCount',).innerText = `${boltsCount} مسامير`;
+            document.getElementById('flangeBoltsCount').innerText = `${boltsCount} مسامير`;
             document.getElementById('flangeBoltSize').innerText = nps <= 3 ? '5/8 بوصة' : (nps <= 8 ? '3/4 بوصة' : '7/8 بوصة');
             document.getElementById('flangeResult').style.display = 'block';
         }
 
-        // 5. الأوزان والسعة
         function calculatePipeDetails() {
             const od = parseFloat(document.getElementById('pipeOD').value);
             const wall = parseFloat(document.getElementById('pipeWall').value);
@@ -833,7 +956,7 @@
             document.getElementById('pipeResult').style.display = 'block';
         }
 
-        // 6. حساب السن
+        // --- حساب السن ---
         function calculateAge() {
             const birthVal = document.getElementById('birthdateInput').value;
             if (!birthVal) return alert('اختر تاريخ الميلاد');
